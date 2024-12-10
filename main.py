@@ -1,26 +1,80 @@
-import requests, zipfile, io
-from bs4 import BeautifulSoup
+class importarDadosAbertos:
+    def __init__(self, url):
+      self.url = url
+      self.links = []
+      self.path = "./"
 
-blob = requests.get("https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2024-11/")
 
-tst = blob.text
+    def baixar_dados(self):
+        import requests
+        blob = requests.get(self.url)
+        return blob.text
 
-soup = BeautifulSoup(tst, 'html.parser')
-links = soup.find_all('a', href=True)
 
-listaUrl = []
-for link in links:
-    listaUrl.append(link['href'])
+    def extrair_links(self, html):
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(html, "html.parser")
+        links = soup.find_all("a", href=True)
+        self.links = [link['href'] for link in links]
 
-linksParaDownload = listaUrl[5:]
-i = 0
-teste = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2024-11/"+ linksParaDownload[i]
-for link in linksParaDownload:
-    teste = "https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2024-11/"+ linksParaDownload[i]
-    r = requests.get(teste)
-    z = zipfile.ZipFile(io.BytesIO(r.content), "r")
-    z.extractall()
-    i = i + 1 
+
+    def processar(self):
+        html = self.baixar_dados()
+        self.extrair_links(html)
+        self.unzippar(self.links)
+
+
+    def unzippar(self, listalink):
+        import zipfile, requests, io
+        import os
+        listalnk = listalink
+        unzpUrl = self.url
+        unzpCnt = 0
+        for link in listalnk:
+            try:
+            
+                    # Vai verificar se é um zip no link.
+                    if not link.endswith(".zip"):
+                        unzpCnt = unzpCnt + 1  
+                        continue
+
+                    unzpLstUrl = unzpUrl + listalnk[unzpCnt]
+                    print(f"./{listalnk[unzpCnt]}")
+                    self.path = f"./{os.path.split(listalnk[unzpCnt])}"     
+                    unzpBlob = requests.get(unzpLstUrl)
+                    unzpZip = zipfile.ZipFile(io.BytesIO(unzpBlob.content), "r")
+                    unzpZip.filename
+                    unzpZip.extractall(self.path)
+                    unzpCnt = unzpCnt + 1   
+            except zipfile.BadZipFile:
+                        unzpCnt = unzpCnt + 1  
+                        continue             
+
+
+def main ():
+    dados = importarDadosAbertos("https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2023-11/")
+    dados.processar()
+
+
+
+main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

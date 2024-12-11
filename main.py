@@ -40,7 +40,6 @@ class importarDadosAbertos:
 
                     unzpLstUrl = unzpUrl + listalnk[unzpCnt]
                     print(f"./{listalnk[unzpCnt]}")
-                    self.path = f"./{os.path.split(listalnk[unzpCnt])}"     
                     unzpBlob = requests.get(unzpLstUrl)
                     unzpZip = zipfile.ZipFile(io.BytesIO(unzpBlob.content), "r")
                     unzpZip.filename
@@ -49,13 +48,20 @@ class importarDadosAbertos:
             except zipfile.BadZipFile:
                         unzpCnt = unzpCnt + 1  
                         continue             
-
+            
+    def renomearCSV(self):
+         import os
+         arquivos = os.listdir(self.path)
+         print(arquivos)
+         for arquivo in arquivos:
+              if not arquivo.endswith('.csv'):
+                    os.rename(f"{self.path}/{arquivo}", f"{self.path}/{arquivo}.csv")
 
 def main ():
-    dados = importarDadosAbertos("https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2023-11/")
+    dados = importarDadosAbertos("https://arquivos.receitafederal.gov.br/dados/cnpj/dados_abertos_cnpj/2024-11/")
+    dados.path = "./2024-11"
     dados.processar()
-
-
+    dados.renomearCSV()
 
 main()
 
